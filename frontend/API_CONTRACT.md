@@ -1,15 +1,15 @@
-# 📜 RUE Backend API Contract
+# 📜 Saiki Backend API Contract
 
-This document defines the interface for the frontend to communicate with the RUE backend.
+This document defines the interface for the frontend to communicate with the Saiki backend.
 
 ## 🔗 Shared Types
 Frontend should import types directly from the backend to ensure synchronization:
 ```typescript
 import type { 
-  RUEResponse, 
+  SaikiResponse, 
   ContextChain, 
   ExtractedTerm,
-  RUEError 
+  SaikiError 
 } from '@/backend/lib/rlm/types';
 ```
 
@@ -28,7 +28,7 @@ Starts a new understanding thread.
 }
 ```
 
-**Response:** `RUEResponse`
+**Response:** `SaikiResponse`
 ```typescript
 {
   explanation: string;
@@ -53,7 +53,7 @@ Drills down into a specific term.
 }
 ```
 
-**Response:** `RUEResponse`
+**Response:** `SaikiResponse`
 ```typescript
 {
   explanation: string;
@@ -96,7 +96,7 @@ Errors are returned with status 400 or 500 and the following shape:
 
 ## 🧪 Joint Handoff Test (Verification Checklist)
 
-Once the `useRUE.ts` hook is wired, Abhishek and backend should run this together:
+Once the `useSaiki.ts` hook is wired, Abhishek and backend should run this together:
 
 1. **Initial Flow:** Type "What is LIME in AI?". Verify explanation arrives and 3-5 chips appear.
 2. **Context Extension:** Click a term (e.g., "model-agnostic"). Verify `contextChain.explorationPath` has 1 item and `currentDepth` = 1.

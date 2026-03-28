@@ -16,7 +16,7 @@ export interface ExtractedTerm {
   difficultyScore: number;        // 1-5, higher = more worth exploring
 }
 
-export interface RUEResponse {
+export interface SaikiResponse {
   explanation: string;            // LLM explanation text
   extractedTerms: ExtractedTerm[]; // 3-5 terms max
   contextChain: ContextChain;     // updated chain to send back
@@ -33,15 +33,15 @@ export interface APIExploreRequest {
   contextChain: ContextChain;     // full chain from frontend state
 }
 
-export type RUEErrorCode =
+export type SaikiErrorCode =
   | "MAX_DEPTH_REACHED"
   | "EXTRACTION_FAILED"
   | "INVALID_INPUT"
   | "CACHE_ERROR"
   | "LLM_ERROR";
 
-export interface RUEError {
-  error: RUEErrorCode;
+export interface SaikiError {
+  error: SaikiErrorCode;
   message: string;
 }
 

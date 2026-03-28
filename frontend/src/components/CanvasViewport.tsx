@@ -1,41 +1,55 @@
-import { useRef, useCallback, useEffect } from 'react';
+import { useRef, useCallback, useEffect, useMemo } from 'react';
 import { motion, useAnimation } from 'framer-motion';
 import { AnimatePresence } from 'framer-motion';
-import { Minimize2 } from 'lucide-react';
+import { Maximize } from 'lucide-react';
 import { useExplorationStore } from '../store/explorationStore';
 import ChatNodeCard from './ChatNode';
-import EdgeLines from './EdgeLines';
+import EdgeOverlay from './EdgeOverlay';
+import { computeDivergenceScore } from '../features/rue/lib/analysis';
 
-interface CanvasViewportProps {
-  onExploreTerm: (term: string, nodeId: string) => void;
-}
+const BRANCH_COLORS = [
+  '#d0bcff',
+  '#7dd3fc',
+  '#86efac',
+  '#fbbf24',
+  '#f472b6',
+];
 
-export default function CanvasViewport({ onExploreTerm }: CanvasViewportProps) {
-  const {
-    nodes, activeNodeId,
-    camX, camY, zoom,
-    panBy, zoomBy, setIsPanning, isPanning, fitAll,
-  } = useExplorationStore();
+export default function CanvasViewport() {
+  const nodes = useExplorationStore((s) => s.nodes);
+  const activeOutputNodeId = useExplorationStore((s) => s.activeOutputNodeId);
+  const openOutputPage = useExplorationStore((s) => s.openOutputPage);
+  const camX = useExplorationStore((s) => s.camX);
+  const camY = useExplorationStore((s) => s.camY);
+  const panBy = useExplorationStore((s) => s.panBy);
+  const setIsPanning = useExplorationStore((s) => s.setIsPanning);
+  const isPanning = useExplorationStore((s) => s.isPanning);
+  const fitAll = useExplorationStore((s) => s.fitAll);
 
   const canvasRef = useRef<HTMLDivElement>(null);
   const panStartRef = useRef<{ x: number; y: number } | null>(null);
   const controls = useAnimation();
 
-  const nodeList = Object.values(nodes);
+  const nodeList = useMemo(() => Object.values(nodes), [nodes]);
 
-  // Sync Framer Motion animation with Zustand camera state
+  const trends = useMemo(() => {
+    const out: Record<string, 'diverging' | 'converging' | 'stable'> = {};
+    for (const id of Object.keys(nodes)) {
+      out[id] = computeDivergenceScore(id, nodes).trend;
+    }
+    return out;
+  }, [nodes]);
+
   useEffect(() => {
     controls.start({
       x: camX,
       y: camY,
-      scale: zoom,
+      scale: 1,
     });
-  }, [camX, camY, zoom, controls]);
+  }, [camX, camY, controls]);
 
-  /* ─── Pan handlers ─── */
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
-    // Only pan on empty canvas (not on nodes)
-    if ((e.target as HTMLElement).closest('[data-node]')) return;
+    if ((e.target as HTMLElement).closest('[data-node-id]')) return;
     panStartRef.current = { x: e.clientX, y: e.clientY };
     setIsPanning(true);
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
@@ -46,33 +60,19 @@ export default function CanvasViewport({ onExploreTerm }: CanvasViewportProps) {
     const dx = e.clientX - panStartRef.current.x;
     const dy = e.clientY - panStartRef.current.y;
     panStartRef.current = { x: e.clientX, y: e.clientY };
-    panBy(dx / zoom, dy / zoom);
-  }, [panBy, zoom]);
+    if (Math.abs(dx) < 0.2 && Math.abs(dy) < 0.2) return;
+    panBy(dx, dy);
+  }, [panBy]);
 
   const handlePointerUp = useCallback(() => {
     panStartRef.current = null;
     setIsPanning(false);
   }, [setIsPanning]);
 
-  /* ─── Zoom handler (Native for passive: false) ─── */
-  useEffect(() => {
-    const el = canvasRef.current;
-    if (!el) return;
-    
-    const handleNativeWheel = (e: WheelEvent) => {
-      e.preventDefault();
-      const delta = -e.deltaY * 0.001;
-      zoomBy(delta, 0, 0);
-    };
-    
-    el.addEventListener('wheel', handleNativeWheel, { passive: false });
-    return () => el.removeEventListener('wheel', handleNativeWheel);
-  }, [zoomBy]);
-
   return (
     <div
       ref={canvasRef}
-      className="fixed inset-0 overflow-hidden"
+      className="absolute inset-0 overflow-hidden"
       style={{ cursor: isPanning ? 'grabbing' : 'grab' }}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
@@ -82,9 +82,9 @@ export default function CanvasViewport({ onExploreTerm }: CanvasViewportProps) {
       <motion.div
         animate={controls}
         transition={{
-          type: 'spring',
-          stiffness: 180,
-          damping: 28,
+          type: 'tween',
+          ease: 'circOut',
+          duration: 0.5,
         }}
         className="absolute w-0 h-0"
         style={{
@@ -92,33 +92,33 @@ export default function CanvasViewport({ onExploreTerm }: CanvasViewportProps) {
           top: '50%',
         }}
       >
-        {/* Edges */}
-        <EdgeLines />
+        <EdgeOverlay />
 
-        {/* Nodes */}
         <AnimatePresence>
           {nodeList.map((node) => (
             <ChatNodeCard
               key={node.id}
               node={node}
-              isActive={node.id === activeNodeId}
-              onExploreTerm={onExploreTerm}
-              onFollowUp={(nId, q) => onExploreTerm(q, nId)}
+              isActive={node.id === activeOutputNodeId}
+              branchColor={BRANCH_COLORS[node.depth % BRANCH_COLORS.length]}
+              divergenceTrend={trends[node.id] ?? 'stable'}
+              onOpen={() => openOutputPage(node.id)}
             />
           ))}
         </AnimatePresence>
       </motion.div>
 
-      {/* Zoom-to-fit button */}
-      {nodeList.length > 1 && (
+      {nodeList.length > 0 && (
         <button
-          onClick={fitAll}
-          className="fixed top-6 right-6 z-50 w-10 h-10 flex items-center justify-center rounded-xl
-                     bg-[#131b2e]/80 backdrop-blur-xl border border-[#494454]/15
-                     text-[#dae2fd]/50 hover:text-[#d0bcff] transition-colors"
-          title="Fit all nodes"
+          type="button"
+          onClick={() => fitAll()}
+          className="fixed bottom-10 right-10 z-[22] w-12 h-12 flex items-center justify-center rounded-2xl
+                     bg-[#131b2e]/80 backdrop-blur-xl border border-white/[0.08]
+                     text-white/40 hover:text-[var(--accent)] hover:border-[var(--accent)]/30
+                     shadow-2xl transition-all duration-200 max-md:bottom-24"
+          title="Recenter Map"
         >
-          <Minimize2 size={16} />
+          <Maximize size={20} />
         </button>
       )}
     </div>

@@ -1,4 +1,4 @@
-# 🧠 Recursive Understanding Engine (RUE)
+# 🧠 Recursive Understanding Engine (Saiki)
 ## Project Blueprint & Integration Documentation
 ### HackMarch 2.0 — DSCE Summit | BuilderThinking PS2
 
@@ -22,18 +22,18 @@
 
 ## 🧬 Core Concept (Read This First)
 
-RUE is a **Recursive Understanding Engine** — inspired by Recursive Language Models (RLMs) from MIT CSAIL (Zhang, Kraska, Khattab, 2025).
+Saiki is a **Recursive Understanding Engine** — inspired by Recursive Language Models (RLMs) from MIT CSAIL (Zhang, Kraska, Khattab, 2025).
 
 **The philosophical difference from a chatbot:**
 
 > Most AI tools assume: *"Answer given = Understanding achieved."*
-> RUE challenges this. True understanding is achieved only when every conceptually non-trivial term in an answer is itself understood — recursively, and always anchored to the original question.
+> Saiki challenges this. True understanding is achieved only when every conceptually non-trivial term in an answer is itself understood — recursively, and always anchored to the original question.
 
 **The RLM Parallel:**
 
-| RLM Paper | RUE System |
+| RLM Paper | Saiki System |
 |---|---|
-| LLM treats long prompt as external environment | RUE treats a concept as an external knowledge graph |
+| LLM treats long prompt as external environment | Saiki treats a concept as an external knowledge graph |
 | Recursively decomposes prompt into sub-tasks | Recursively decomposes answer into sub-concepts |
 | Each recursive call is context-bounded | Each drill-down stays anchored to root question |
 | Sub-results aggregate into final answer | Sub-explanations aggregate into full understanding |
@@ -46,7 +46,7 @@ Every recursive sub-explanation carries the full parent context chain. "Architec
 ## 🗂️ Folder Structure
 
 ```
-RUE/
+Saiki/
 ├── README.md                         ← Project overview (copy from this doc's summary)
 ├── .env.local                        ← API keys (NEVER commit this)
 ├── .env.example                      ← Template for env vars (commit this)
@@ -111,7 +111,7 @@ RUE/
 │   │       └── ConceptTree.tsx       ← Optional: Visual tree of explored concepts
 │   │
 │   ├── hooks/
-│   │   ├── useRUE.ts                 ← 🔴🔵 PRIMARY INTEGRATION HOOK
+│   │   ├── useSaiki.ts                 ← 🔴🔵 PRIMARY INTEGRATION HOOK
 │   │   │                                Calls backend API, manages state
 │   │   ├── useExploration.ts         ← Manages recursion state (path, depth, history)
 │   │   └── useStream.ts              ← Handles streaming LLM responses
@@ -162,7 +162,7 @@ export interface ExtractedTerm {
   difficultyScore: number;        // 1-5, used to prioritize which terms to show
 }
 
-export interface RUEResponse {
+export interface SaikiResponse {
   explanation: string;            // The LLM's explanation (streamed)
   extractedTerms: ExtractedTerm[]; // 3-5 key terms from this explanation
   contextChain: ContextChain;     // Full context passed back to frontend
@@ -185,7 +185,7 @@ Your entire product quality depends on these prompts. Spend the most time here.
 ```typescript
 // PROMPT 1: Initial Answer Generation
 export const INITIAL_ANSWER_PROMPT = (question: string) => `
-You are RUE — a Recursive Understanding Engine.
+You are Saiki — a Recursive Understanding Engine.
 A user has asked: "${question}"
 
 Your task:
@@ -230,7 +230,7 @@ export const ANCHORED_EXPLANATION_PROMPT = (
   term: string,
   context: ContextChain
 ) => `
-You are RUE — a Recursive Understanding Engine.
+You are Saiki — a Recursive Understanding Engine.
 
 The user is trying to understand: "${context.rootQuestion}"
 They have been exploring: ${context.explorationPath.join(" → ")}
@@ -328,26 +328,26 @@ export function generateCacheKey(context: ContextChain, term?: string): string {
 **`app/api/ask/route.ts`** (Initial question)
 ```typescript
 // INPUT:  { question: string }
-// OUTPUT: RUEResponse (streamed)
+// OUTPUT: SaikiResponse (streamed)
 // FLOW:
 //   1. Validate input
 //   2. Create initial ContextChain (empty path, depth 0)
 //   3. Check cache (hashKey with __root__)
 //   4. If MISS: Call LLM for answer → extract terms → cache
-//   5. Return RUEResponse with explanation + extractedTerms + contextChain
+//   5. Return SaikiResponse with explanation + extractedTerms + contextChain
 ```
 
 **`app/api/explore/route.ts`** (Term drill-down)
 ```typescript
 // INPUT:  { term: string, contextChain: ContextChain }
-// OUTPUT: RUEResponse (streamed)
+// OUTPUT: SaikiResponse (streamed)
 // FLOW:
 //   1. Validate input
 //   2. Check shouldStopRecursion(contextChain)
 //   3. Extend context chain with new term
 //   4. Check cache (hashKey with term + full path)
 //   5. If MISS: Call LLM with ANCHORED prompt → extract terms → cache
-//   6. Return RUEResponse
+//   6. Return SaikiResponse
 ```
 
 ---
@@ -457,7 +457,7 @@ Small, subtle, but communicates the system's state.
 [ ] Build LoadingState skeleton
 [ ] Build ErrorState component
 [ ] Implement useExploration hook (state management)
-[ ] Connect useRUE hook to API (integration point)
+[ ] Connect useSaiki hook to API (integration point)
 [ ] Mobile responsive pass
 [ ] Final polish: animations, transitions, spacing audit
 ```
@@ -470,33 +470,33 @@ These are the **exact points where both systems connect.** Both must agree on th
 
 ---
 
-### Integration Point 1: `frontend/hooks/useRUE.ts`
+### Integration Point 1: `frontend/hooks/useSaiki.ts`
 **This is the most important integration file.**
 Abhishek builds the hook shell. GiGi defines the API contract it calls.
 
 ```typescript
-// frontend/hooks/useRUE.ts
+// frontend/hooks/useSaiki.ts
 // Abhishek owns this file's internal logic
 // GiGi owns what the API returns
 
-import { RUEResponse, ContextChain } from '../../backend/lib/rlm/types';
+import { SaikiResponse, ContextChain } from '../../backend/lib/rlm/types';
 
-export function useRUE() {
+export function useSaiki() {
   // Calls POST /api/ask
-  const askQuestion = async (question: string): Promise<RUEResponse> => {};
+  const askQuestion = async (question: string): Promise<SaikiResponse> => {};
 
   // Calls POST /api/explore
   const exploreTerm = async (
     term: string,
     contextChain: ContextChain
-  ): Promise<RUEResponse> => {};
+  ): Promise<SaikiResponse> => {};
 
   return { askQuestion, exploreTerm, isLoading, error };
 }
 ```
 
 **Agreement required:**
-- GiGi must ensure API returns exactly `RUEResponse` shape
+- GiGi must ensure API returns exactly `SaikiResponse` shape
 - Abhishek must pass exactly `ContextChain` shape to `/api/explore`
 
 ---
@@ -507,7 +507,7 @@ Both sides use the same TypeScript interfaces. No duplicate type definitions any
 
 ```typescript
 // Abhishek imports like this:
-import type { RUEResponse, ExtractedTerm, ContextChain } 
+import type { SaikiResponse, ExtractedTerm, ContextChain } 
   from '../../backend/lib/rlm/types';
 ```
 
@@ -607,7 +607,7 @@ GiGi:
 Abhishek:
   ├── Build TermChip with all states
   ├── Build SubExplanation panel
-  ├── Implement useRUE hook
+  ├── Implement useSaiki hook
   └── Connect to real /api/ask endpoint
 ```
 

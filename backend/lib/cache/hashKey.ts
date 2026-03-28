@@ -14,7 +14,7 @@ export function generateCacheKey(context: ContextChain, term?: string): string {
   const jsonString = JSON.stringify(raw);
   const hash = createHash("md5").update(jsonString).digest("hex");
 
-  return `rue:${hash}`;
+  return `saiki:${hash}`;
 }
 
 /**

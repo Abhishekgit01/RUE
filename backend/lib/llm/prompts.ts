@@ -4,7 +4,7 @@ import { ContextChain } from "../rlm/types";
  * PROMPT 1: Initial Answer Generation
  */
 export const generateInitialAnswerPrompt = (question: string) => `
-You are RUE — a Recursive Understanding Engine. 
+You are Saiki — a Recursive Understanding Engine. 
 Your job is not just to answer questions, but to make the user truly understand. 
 
 A user has asked: "${question}"
@@ -74,7 +74,7 @@ export const generateAnchoredExplanationPrompt = (
   term: string,
   context: ContextChain
 ) => `
-You are RUE — a Recursive Understanding Engine.
+You are Saiki — a Recursive Understanding Engine.
 
 THE USER'S ORIGINAL GOAL:
 They want to understand: "${context.rootQuestion}"

@@ -32,7 +32,7 @@ export async function POST(req: Request) {
     // Use internal function calls or absolute URLs for internal fetch
     for (const question of GOLDEN_PATHS) {
       try {
-        console.log(`[RUE][WARMUP] Processing: "${question}"`);
+        console.log(`[Saiki][WARMUP] Processing: "${question}"`);
         
         const response = await fetch(`${BASE_URL}/api/ask`, {
           method: "POST",

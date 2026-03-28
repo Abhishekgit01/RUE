@@ -1,4 +1,4 @@
-import { ContextChain, APIExploreRequest, RUEErrorCode } from "./types";
+import { ContextChain, APIExploreRequest, SaikiErrorCode } from "./types";
 import {
   createInitialContextChain,
   extendContextChain,

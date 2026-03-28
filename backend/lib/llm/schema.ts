@@ -21,7 +21,7 @@ export function parseTermExtractionResponse(rawJson: string): ExtractedTerm[] | 
     const endIndex = rawJson.lastIndexOf("}");
 
     if (startIndex === -1 || endIndex === -1 || endIndex < startIndex) {
-      console.error("[RUE][SCHEMA ERROR] No valid JSON object found in response.");
+      console.error("[Saiki][SCHEMA ERROR] No valid JSON object found in response.");
       return null;
     }
 
@@ -34,13 +34,13 @@ export function parseTermExtractionResponse(rawJson: string): ExtractedTerm[] | 
     const result = TermExtractionResponseSchema.safeParse(parsed);
 
     if (!result.success) {
-      console.error("[RUE][SCHEMA ERROR] Zod validation failed:", result.error.format());
+      console.error("[Saiki][SCHEMA ERROR] Zod validation failed:", result.error.format());
       return null;
     }
 
     return result.data.terms;
   } catch (error) {
-    console.error("[RUE][SCHEMA ERROR] JSON parsing failed:", error);
+    console.error("[Saiki][SCHEMA ERROR] JSON parsing failed:", error);
     return null;
   }
 }

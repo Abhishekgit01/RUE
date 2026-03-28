@@ -1,4 +1,4 @@
-// Shared types for the RUE system
+// Shared types for the Saiki system
 
 export interface ContextChain {
   rootQuestion: string;
@@ -16,20 +16,28 @@ export interface ExtractedTerm {
 
 export interface ChatNode {
   id: string;
+  parentId: string | null;
+  parentTerm: string | null;
   prompt: string;
   response: string;
-  extractedTerms: ExtractedTerm[];
-  contextChain?: ContextChain;
+  terms: string[];
+  summary: string;
+  /** True after stream ends until LLM summary is stored or fails */
+  summaryPending: boolean;
   depth: number;
-  parentId: string | null;
-  childIds: string[];
+  childCount: number;
   x: number;
   y: number;
-  width: number;
-  height: number;
-  isCollapsed: boolean;
   isStreaming: boolean;
+  isCollapsed: boolean;
+  isFollowUp: boolean;
+  width?: number;
+  height?: number;
+  localDepthLimit: number | null;
 }
+
+/** Alias aligned with RUE docs */
+export type RUENode = ChatNode;
 
 export interface GraphEdge {
   id: string;

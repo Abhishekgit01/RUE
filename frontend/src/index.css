@@ -9,7 +9,10 @@
   --color-surface-container-high: #222a3d;
   --color-surface-container-highest: #2a344d;
   --color-surface-bright: #3b4559;
-  --color-primary: #d0bcff;
+  --accent: #d0bcff;
+  --color-primary: var(--accent);
+  --color-text-primary: #dae2fd;
+  --color-text-secondary: rgba(218, 226, 253, 0.5);
   --color-primary-container: #a078ff;
   --color-primary-fixed: #e9ddff;
   --color-outline-variant: #494454;
@@ -43,6 +46,16 @@
   ::selection {
     background-color: rgba(208, 188, 255, 0.3);
   }
+
+  @tailwind utilities;
+
+  /* Custom scrollbar for pool and sidebar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(208, 188, 255, 0.2); border-radius: 99px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(208, 188, 255, 0.4); }
+
+  .custom-scrollbar::-webkit-scrollbar { width: 3px; }
 
   ::-webkit-scrollbar {
     width: 6px;

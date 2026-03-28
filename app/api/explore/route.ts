@@ -5,7 +5,7 @@ import { generateExplanation } from "@/backend/lib/llm/client";
 import { extractTermsFromExplanation } from "@/backend/lib/rlm/extractor";
 import { validateExploreRequest } from "@/backend/lib/utils/validator";
 import { logRequest, logCacheHit, logCacheMiss, logError, logLLMCall } from "@/backend/lib/utils/logger";
-import { RUEResponse } from "@/backend/lib/rlm/types";
+import { SaikiResponse } from "@/backend/lib/rlm/types";
 
 export async function POST(req: Request) {
   try {
@@ -58,7 +58,7 @@ export async function POST(req: Request) {
     const terms = await extractTermsFromExplanation(fullText, extendedChain);
 
     // 7. Build & Cache Response
-    const response: RUEResponse = {
+    const response: SaikiResponse = {
       explanation: fullText,
       extractedTerms: terms,
       contextChain: extendedChain,

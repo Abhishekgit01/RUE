@@ -1,5 +1,5 @@
 import { Redis } from "@upstash/redis";
-import { RUEResponse } from "../rlm/types";
+import { SaikiResponse } from "../rlm/types";
 
 const isPlaceholder = !process.env.UPSTASH_REDIS_REST_URL || process.env.UPSTASH_REDIS_REST_URL.includes("your_upstash");
 
@@ -15,13 +15,13 @@ const TTL = 60 * 60 * 24 * 7; // 7 days in seconds
 /**
  * Fetches a cached response from Redis.
  */
-export async function getCachedResponse(cacheKey: string): Promise<RUEResponse | null> {
+export async function getCachedResponse(cacheKey: string): Promise<SaikiResponse | null> {
   if (!redis) return null;
   try {
-    const data = await redis.get<RUEResponse>(cacheKey);
+    const data = await redis.get<SaikiResponse>(cacheKey);
     return data;
   } catch (error) {
-    console.error("[RUE][CACHE ERROR] Failed to get response:", error);
+    console.error("[Saiki][CACHE ERROR] Failed to get response:", error);
     return null;
   }
 }
@@ -31,13 +31,13 @@ export async function getCachedResponse(cacheKey: string): Promise<RUEResponse |
  */
 export async function setCachedResponse(
   cacheKey: string,
-  response: RUEResponse
+  response: SaikiResponse
 ): Promise<void> {
   if (!redis) return;
   try {
     await redis.set(cacheKey, response, { ex: TTL });
   } catch (error) {
-    console.error("[RUE][CACHE ERROR] Failed to set response:", error);
+    console.error("[Saiki][CACHE ERROR] Failed to set response:", error);
   }
 }
 
@@ -50,7 +50,7 @@ export async function checkCacheHealth(): Promise<boolean> {
     const pong = await redis.ping();
     return pong === "PONG";
   } catch (error) {
-    console.error("[RUE][CACHE ERROR] Health check failed:", error);
+    console.error("[Saiki][CACHE ERROR] Health check failed:", error);
     return false;
   }
 }

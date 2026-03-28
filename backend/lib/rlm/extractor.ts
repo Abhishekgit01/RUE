@@ -17,14 +17,14 @@ export async function extractTermsFromExplanation(
 
     // 2. Call LLM for JSON extraction
     let rawJson = await generateWithJSON(prompt);
-    console.log("[RUE][DEBUG] Raw Extraction JSON:", rawJson);
+    console.log("[Saiki][DEBUG] Raw Extraction JSON:", rawJson);
     
     // 3. Parse and validate
     let terms = parseTermExtractionResponse(rawJson);
 
     // 4. Retry once if decoding fails or result is empty
     if (!terms || terms.length === 0) {
-      console.warn("[RUE][EXTRACTOR] First extraction attempt failed or empty. Retrying...");
+      console.warn("[Saiki][EXTRACTOR] First extraction attempt failed or empty. Retrying...");
       rawJson = await generateWithJSON(prompt);
       terms = parseTermExtractionResponse(rawJson);
     }
@@ -44,7 +44,7 @@ export async function extractTermsFromExplanation(
     // 7. Return top MAX_TERMS (5)
     return sortedTerms.slice(0, MAX_TERMS);
   } catch (error) {
-    console.error("[RUE][EXTRACTOR ERROR]:", error);
+    console.error("[Saiki][EXTRACTOR ERROR]:", error);
     return [];
   }
 }

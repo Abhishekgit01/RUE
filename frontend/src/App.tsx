@@ -1,24 +1,64 @@
+import { useEffect, useState } from 'react';
+import clsx from 'clsx';
 import { AnimatePresence } from 'framer-motion';
 import { useExplorationStore } from './store/explorationStore';
-import { useRUE } from './hooks/useRUE';
+import { useSessionStore } from './store/sessionStore';
+import { useSettingsStore } from './store/settingsStore';
+import { useSaiki } from './hooks/useSaiki';
 import MagicRings from './components/MagicRings';
 import QueryInput from './components/QueryInput';
 import CanvasViewport from './components/CanvasViewport';
-import BreadcrumbTrail from './components/BreadcrumbTrail';
+import Sidebar from './components/Sidebar';
+import SidebarToggle from './components/SidebarToggle';
+import ProfilePanel from './components/ProfilePanel';
+import FloatingToolbar from './components/FloatingToolbar';
+import { OutputPage } from './components/OutputPage';
+import Minimap from './components/Minimap';
 
 function App() {
-  const { rootNodeId, nodes } = useExplorationStore();
-  const { askQuestion, exploreTerm } = useRUE();
+  const { rootNodeId, nodes, activeOutputNodeId } = useExplorationStore();
+  const { loadSession, sidebarOpen, setSidebarOpen, createSession } = useSessionStore();
+  const { askQuestion } = useSaiki();
+  const { initSettings } = useSettingsStore();
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+
+  useEffect(() => {
+    initSettings();
+    
+    // Keyboard Shortcuts
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'b') {
+        e.preventDefault();
+        setSidebarOpen(!sidebarOpen);
+      }
+      if ((e.metaKey || e.ctrlKey) && e.key === 'n') {
+        e.preventDefault();
+        createSession('');
+      }
+      if ((e.metaKey || e.ctrlKey) && e.key === 'p') {
+        e.preventDefault();
+        setIsProfileOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
+    const params = new URLSearchParams(window.location.search);
+    const sessionId = params.get('session');
+    if (sessionId) {
+      loadSession(sessionId);
+    }
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [loadSession, initSettings, sidebarOpen, setSidebarOpen, createSession]);
 
   const isExploring = rootNodeId !== null;
   const anyStreaming = Object.values(nodes).some((n) => n.isStreaming);
 
   return (
     <div className="relative w-full min-h-screen bg-[#0b1326] overflow-hidden">
-      {/* Background */}
+      {/* Background Decor */}
       <div className="fixed inset-0 z-0 opacity-40 pointer-events-none">
         <MagicRings
-          color="#d0bcff"
+          color="var(--accent)"
           colorTwo="#a078ff"
           opacity={0.35}
           followMouse={false}
@@ -29,32 +69,38 @@ function App() {
         />
       </div>
 
-      {/* STATE 1: Empty Dashboard */}
+      {/* DASHBOARD: Initial State */}
       <AnimatePresence mode="wait">
         {!isExploring && (
-          <QueryInput onSubmit={askQuestion} isLoading={anyStreaming} />
+          <div className={`flex-1 relative min-h-screen transition-all duration-300 ${sidebarOpen ? 'ml-[280px]' : 'ml-0'}`}>
+            <QueryInput onSubmit={askQuestion} isLoading={anyStreaming} />
+          </div>
         )}
       </AnimatePresence>
 
-      {/* STATE 2 & 3: Canvas Exploration */}
+      {/* EXPLORATION: Canvas View */}
       {isExploring && (
-        <>
-          <CanvasViewport onExploreTerm={exploreTerm} />
-          <BreadcrumbTrail />
-        </>
+        <main
+          className={clsx(
+            'flex-1 relative h-screen transition-all duration-300',
+            sidebarOpen ? 'ml-[280px]' : 'ml-0',
+            activeOutputNodeId && 'max-md:invisible max-md:pointer-events-none'
+          )}
+        >
+          <CanvasViewport />
+        </main>
       )}
 
-      {/* Reset Button */}
-      {isExploring && (
-        <button
-          onClick={() => useExplorationStore.getState().reset()}
-          className="fixed bottom-6 left-6 z-50 px-4 py-2.5 rounded-xl text-xs font-medium
-                     bg-[#131b2e]/80 backdrop-blur-xl border border-[#494454]/15
-                     text-[#dae2fd]/50 hover:text-[#d0bcff] transition-colors"
-        >
-          ← New Question
-        </button>
-      )}
+      {/* Overlay Interfaces */}
+      <Sidebar onOpenProfile={() => setIsProfileOpen(true)} />
+      <SidebarToggle />
+      <ProfilePanel isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
+      
+      <FloatingToolbar />
+      <Minimap />
+
+      {/* The Central Content Drawer */}
+      <OutputPage />
     </div>
   );
 }

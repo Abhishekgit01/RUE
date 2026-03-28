@@ -1,5 +1,5 @@
 /**
- * Golden Paths for RUE Demo
+ * Golden Paths for Saiki Demo
  * These represent the most likely user journeys for the hackathon.
  */
 export const GOLDEN_PATHS = [
